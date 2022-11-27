@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Price;
 use App\Models\Product;
 use Exception;
 use Illuminate\Console\Command;

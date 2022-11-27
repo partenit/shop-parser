@@ -10,5 +10,5 @@ interface ShopParseInterface
 
     public function getProductPagesUrls(): array;
 
-    public function processProductPages(array $urls): void;
+    public function processProductPage($url): array;
 }
