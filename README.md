@@ -33,6 +33,7 @@
 ```php artisan parse:execute https://httpstat.us/503 ```
 
 Затем смотрим лог файл в папке storage/logs. В т.ч. там будет тело отправленного письма при ошибке 503.
+![image](public/images/log.png)
 
 ### Тестирование
 php artisan test
