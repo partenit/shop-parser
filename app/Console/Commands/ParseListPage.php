@@ -15,7 +15,7 @@ class ParseListPage extends Command
      *
      * @var string
      */
-    protected $signature = 'parse:execute {url}';
+    protected $signature = 'parse:execute {url?} {--limit=0}';
 
     /**
      * The console command description.
@@ -35,7 +35,15 @@ class ParseListPage extends Command
      */
     public function handle()
     {
-        $url = $this->argument('url');
+        $url    = $this->argument('url');
+        $limit  = $this->option('limit');
+        $count  = 0;
+
+        if (! $url) {
+            $this->error('Ошибка: не указан url страницы со списком товаров');
+
+            return Command::INVALID;
+        }
 
         // Проверяем, что передали валидный URL
         if (! filter_var($url, FILTER_VALIDATE_URL)) {
@@ -44,7 +52,7 @@ class ParseListPage extends Command
             return Command::INVALID;
         }
 
-        // находим сервис, умеющий обрабатывать этот URL
+        // находим сервис, умеющий обрабатывать этот магазин
         $this->service = $this->resolveService($url);
 
         // сообщаем, что сервис не найден
@@ -54,7 +62,8 @@ class ParseListPage extends Command
             return Command::INVALID;
         }
 
-        $this->comment('Парсим страницу со списком товаров...');
+        $start = microtime(true);
+        $this->comment('Обрабатываем страницу со списком товаров...');
 
         $data = $this->service
             ->setPageUrl($url)
@@ -68,20 +77,27 @@ class ParseListPage extends Command
             return Command::FAILURE;
         }
 
-        $this->withProgressBar($data, function ($url) {
-            $this->service->processProductPage($url);
+        $this->comment('Обрабатываем страницы товаров...');
+        $this->withProgressBar($data, function ($url) use (&$count, $limit) {
+            $count++;
+
+            if ($limit && $count > $limit) {
+                return;
+            }
+
+            $product    = $this->service->processProductPage($url);
+            $is_exists  = $this->service->isProductExists($product);
+            $is_success = $this->service->storeProduct($product);
+
+            $this->service->updateReport($is_exists, $is_success, (bool) $product['is_available']);
         });
 
-        //$this->service->processProductPages($data);
-
+        $this->newLine(2);
         $this->info('Парсинг завершен');
-        //$this->info($this->service->getReport());
-
-        // выводить статистику:
-        // сколько каких ошибок
-        // сколько обновлено, сколько добавлено
-        // отправлено ли письмо админу
-        // сколько времени занял процесс
+        $this->newLine();
+        $this->info('Время выполнения: ' . number_format(microtime(true) - $start, 2) . ' сек.');
+        $this->newLine();
+        $this->info($this->service->getReport());
 
         return Command::SUCCESS;
     }

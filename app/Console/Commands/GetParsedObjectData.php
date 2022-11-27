@@ -37,7 +37,7 @@ class GetParsedObjectData extends Command
                 ->with('prices')
                 ->with('features')
                 ->first()
-                ->toArray()
+                ?->toArray()
         );
     }
 }

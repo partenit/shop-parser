@@ -19,6 +19,12 @@ abstract class AbstractParseService implements ShopParseInterface
     protected string $pageUrl;
     protected ?HtmlDomParser $pageData = null;
     protected HtmlDomParser $htmlDomParser;
+    protected array $report = [
+        'новых товаров'         => 0,
+        'обновленных товаров'   => 0,
+        'нет в наличии'         => 0,
+        'не добавлено'          => 0,
+    ];
 
     public function __construct()
     {
@@ -81,7 +87,11 @@ abstract class AbstractParseService implements ShopParseInterface
     public function processProductPages(array $urls): void
     {
         array_walk($urls, function ($url) use (&$count) {
-            $this->processProductPage($url);
+            $product = $this->processProductPage($url);
+            $is_exists = $this->isProductExists($product);
+            $is_success = $this->storeProduct($product);
+
+            $this->updateReport($is_exists, $is_success, (bool) $product['is_available']);
         });
     }
 
@@ -99,8 +109,12 @@ abstract class AbstractParseService implements ShopParseInterface
         }
     }
 
-    protected function storeProduct($product):void
+    public function storeProduct($product): bool
     {
+        if (! $product['code']) {
+            return false;
+        }
+
         $product_item = Product::updateOrCreate([
             'shop_id'       => $product['shop_id'],
             'code'          => $product['code'],
@@ -133,5 +147,44 @@ abstract class AbstractParseService implements ShopParseInterface
                 'value' => $value,
             ]);
         }
+
+        return true;
     }
+
+    public function isProductExists($product): bool
+    {
+        return (bool) Product::where('shop_id', $product['shop_id'])
+            ->where('code', $product['code'])
+            ->count();
+    }
+
+    public function getReport(): string
+    {
+        $report = '';
+
+        foreach ($this->report as $key => $value) {
+            $report .= $key . ': ' . $value . PHP_EOL;
+        }
+
+        return $report;
+    }
+
+    public function updateReport(bool $is_exists, bool $is_success, bool $is_available): void
+    {
+        if ($is_exists) {
+            $this->report['обновленных товаров']++;
+        } else {
+            $this->report['новых товаров']++;
+        }
+
+        if (! $is_success) {
+            $this->report['не добавлено']++;
+        }
+
+        if (! $is_available) {
+            $this->report['нет в наличии']++;
+        }
+    }
+
+
 }

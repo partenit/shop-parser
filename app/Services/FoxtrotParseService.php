@@ -47,8 +47,6 @@ class FoxtrotParseService extends AbstractParseService
 
         $product['is_available'] = $product['prices']['discounted'] ? 1 : 0;
 
-        $this->storeProduct($product);
-
         return $product;
     }
 
