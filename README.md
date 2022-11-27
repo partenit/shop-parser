@@ -27,6 +27,13 @@
 
 ```php artisan parse:object_data ххххх, где ххххх - код товара```
 
+3) для проверки 404 и 503 ошибок запускаем команды
+
+```php artisan parse:execute https://httpstat.us/404 ```
+```php artisan parse:execute https://httpstat.us/503 ```
+
+Затем смотрим лог файл в папке storage/logs. В т.ч. там будет тело отправленного письма при ошибке 503.
+
 ### Тестирование
 php artisan test
 
