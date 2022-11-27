@@ -6,5 +6,9 @@ interface ShopParseInterface
 {
     public function setPageUrl(string $url): ShopParseInterface;
 
-    public function getGoodPagesUrls(): array;
+    public function requestPageContent(): ShopParseInterface;
+
+    public function getProductPagesUrls(): array;
+
+    public function processProductPages(array $urls): void;
 }

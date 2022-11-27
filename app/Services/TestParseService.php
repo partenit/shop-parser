@@ -12,9 +12,9 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
 use voku\helper\HtmlDomParser;
 
-class FoxtrotParseService implements ShopParseInterface
+class TestParseService implements ShopParseInterface
 {
-    private const DOMAIN = 'foxtrot.com.ua';
+    private const DOMAIN = 'httpstat.us';
     private const SHOP_ID = 1;
     private string $pageUrl;
     private ?HtmlDomParser $pageData = null;
@@ -39,7 +39,7 @@ class FoxtrotParseService implements ShopParseInterface
     /**
      * @throws Exception
      */
-    public function requestPageContent(): FoxtrotParseService
+    public function requestPageContent(): ShopParseInterface
     {
         try {
             //TODO учесть таймаут и повторы
@@ -51,8 +51,8 @@ class FoxtrotParseService implements ShopParseInterface
                 event(new RequestPageContentFailed($response, $this->pageUrl));
             }
 
-        } catch (Exception) {
-            throw new Exception('Не удалось получить данные с сайта');
+        } catch (Exception $e) {
+            throw new Exception('Не удалось получить данные с сайта' . $e->getMessage());
         }
 
         return $this;
